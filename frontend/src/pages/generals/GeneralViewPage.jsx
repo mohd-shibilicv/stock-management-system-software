@@ -43,7 +43,7 @@ const GeneralViewPage = () => {
         <div className="container mx-auto px-4 py-4 flex gap-2 justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <Container size={28} className="text-blue-600" />
-            <div className="text-2xl font-bold text-blue-600">InventoryPro</div>
+            <div className="hidden sm:block text-2xl font-bold text-blue-600">InventoryPro</div>
           </Link>
           <div className="w-full flex justify-end">
             <div>
