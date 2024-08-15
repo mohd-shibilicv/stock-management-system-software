@@ -1,0 +1,2 @@
+## Overview
+The goal is to develop a Product Management Software System for a shop, which consists of a central store and multiple branches. the system is responsible to handle product management, supplier management, tracking product inflows and outflows, damaged products, and inventory transfers between store and branches.
