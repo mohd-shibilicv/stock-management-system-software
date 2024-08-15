@@ -15,8 +15,21 @@ class ProductSerializer(serializers.ModelSerializer):
             "category",
             "brand",
             "opening_stock",
+            "barcode_image"
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "barcode_image"]
+    
+    def create(self, validated_data):
+        # Create the product instance
+        product = Product.objects.create(**validated_data)
+        
+        # Generate the barcode after the initial save
+        product.generate_barcode()
+        
+        # Save the product again with the generated barcode image
+        product.save()
+
+        return product
 
 
 class DamagedProductSerializer(serializers.ModelSerializer):
