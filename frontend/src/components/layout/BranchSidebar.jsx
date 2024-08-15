@@ -14,9 +14,11 @@ import {
   Send
 } from "lucide-react";
 import LogoutBtn from "./LogoutBtn";
+import { useSelector } from "react-redux";
 
 const BranchSidebar = () => {
   const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
 
   const isActive = (path) => {
     return location.pathname === path
@@ -54,7 +56,7 @@ const BranchSidebar = () => {
   return (
     <div className="w-20 md:w-64 bg-white p-4 h-screen border-r border-gray-300 flex flex-col">
       <Link to="/" className="mb-8 flex justify-center md:justify-start">
-        <div className="text-black-500 text-2xl font-bold">Branch Name</div>
+        <div className="text-black-500 text-2xl font-bold">{user?.managed_branch ? `${user.managed_branch.name}` : "Branch Name" }</div>
       </Link>
       <nav className="flex-grow">
         <ul className="space-y-2">

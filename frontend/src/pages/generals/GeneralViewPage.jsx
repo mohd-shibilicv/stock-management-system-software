@@ -41,8 +41,8 @@ const GeneralViewPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white">
       <header className="shadow-none">
         <div className="container mx-auto px-4 py-4 flex gap-2 justify-between items-center">
-          <Link to="/" className="flex gap-2">
-            <Container size={32} className="text-blue-600" />
+          <Link to="/" className="flex items-center gap-2">
+            <Container size={28} className="text-blue-600" />
             <div className="text-2xl font-bold text-blue-600">InventoryPro</div>
           </Link>
           <div className="w-full flex justify-end">
