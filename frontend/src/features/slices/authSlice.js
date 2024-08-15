@@ -9,7 +9,7 @@ export const loginUser = createAsyncThunk(
       const response = await login(credentials);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'An error occurred');
+      return rejectWithValue(error.response?.data?.detail || 'An error occurred');
     }
   }
 );
