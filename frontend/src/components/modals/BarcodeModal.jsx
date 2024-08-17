@@ -2,6 +2,7 @@ import React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -13,6 +14,7 @@ const BarcodeModal = ({ isOpen, onClose, barcodeImage, productName }) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-center mb-5">Barcode for {productName}</DialogTitle>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
         <div className="flex justify-center">
           <img
