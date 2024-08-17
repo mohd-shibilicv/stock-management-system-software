@@ -62,3 +62,8 @@ export const logout = async () => {
       localStorage.removeItem('refresh');
   }
 };
+
+export const fetchBranchProducts = async () => {
+  const response = await api.get("/branch-products/");
+  return response.data;
+};
