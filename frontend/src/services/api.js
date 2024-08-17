@@ -63,6 +63,11 @@ export const logout = async () => {
   }
 };
 
+export const fetchStoreProducts = async () => {
+  const response = await api.get("/products/");
+  return response.data;
+};
+
 export const fetchBranchProducts = async () => {
   const response = await api.get("/branch-products/");
   return response.data;

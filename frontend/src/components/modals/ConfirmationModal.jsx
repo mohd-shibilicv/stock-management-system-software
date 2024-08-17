@@ -2,23 +2,28 @@ import React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-const ConfirmationModal = ({ open, onClose, onConfirm }) => {
+const ConfirmationModal = ({ open, onClose, onConfirm, title, description }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Confirm</DialogTitle>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
-        <p>Are you sure?</p>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={onConfirm}>Confirm</Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={onConfirm} color="primary">
-          Yes
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
