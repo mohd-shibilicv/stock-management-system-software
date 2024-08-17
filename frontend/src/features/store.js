@@ -4,7 +4,7 @@ import {
   FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import authReducer, { tokenMiddleware } from "./slices/authSlice";
+import authReducer from "./slices/authSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -25,7 +25,7 @@ export const store = configureStore({
     serializableCheck: {
       ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
     }
-  }).concat(tokenMiddleware),
+  }),
 });
 
 export const persistor = persistStore(store);

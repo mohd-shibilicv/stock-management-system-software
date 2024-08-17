@@ -14,12 +14,14 @@ import {
 import GeneralViewPage from "./pages/generals/GeneralViewPage";
 import Unauthorized from "./components/layout/Unauthorized";
 import ErrorBoundary from "./components/layout/ErrorBoundary";
+import TokenExpirationModal from "./components/modals/TokenExpirationModel";
 
 function App() {
   return (
     <Provider store={store}>
       <ErrorBoundary>
         <Router>
+          <TokenExpirationModal />
           <Routes>
             <Route
               path="/login"
