@@ -77,3 +77,8 @@ export const fetchSuppliers = async () => {
   const response = await api.get("/suppliers/");
   return response.data;
 };
+
+export const fetchBranches = async () => {
+  const response = await api.get("/branches/");
+  return response.data;
+};
