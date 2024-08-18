@@ -15,7 +15,8 @@ import {
   FileStack,
   ArrowUpFromDot,
   Layers3,
-  Container
+  Container,
+  HeartCrack
 } from "lucide-react";
 import LogoutBtn from "./LogoutBtn";
 
@@ -33,6 +34,7 @@ const StoreSidebar = () => {
     { path: "/store/products", icon: PackageSearch, label: "Products" },
     { path: "/store/suppliers", icon: Truck, label: "Suppliers" },
     { path: "/store/branches", icon: Warehouse, label: "Branches" },
+    { path: "/store/damaged-products", icon: HeartCrack, label: "Damaged Products" },
     { path: "/store/product-inflow", icon: ArrowDownToDot, label: "Product Inflows" },
     { path: "/store/product-outflow", icon: ArrowUpFromDot, label: "Product Outflows" },
     { path: "/store/reports", icon: Layers3, label: "Reports" },

@@ -9,6 +9,7 @@ import ProductInflow from "./pages/storePages/ProductInflow";
 import ProductOutflow from "./pages/storePages/ProductOutflow";
 import StoreReports from "./pages/storePages/StoreReports";
 import Notifications from "./pages/storePages/Notifications";
+import DamagedProductsPage from "./pages/storePages/DamagedProductsPage";
 
 function Store() {
   return (
@@ -18,6 +19,7 @@ function Store() {
         <Route path="/products" element={<StoreProducts /> } />
         <Route path="/suppliers" element={<Suppliers /> } />
         <Route path="/branches" element={<Branches /> } />
+        <Route path="/damaged-products" element={<DamagedProductsPage /> } />
         <Route path="/product-inflow" element={<ProductInflow /> } />
         <Route path="/product-outflow" element={<ProductOutflow /> } />
         <Route path="/reports" element={<StoreReports /> } />

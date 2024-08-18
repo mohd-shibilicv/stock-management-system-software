@@ -1,6 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, filters
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, DamagedProductSerializer
 from .models import Product, DamagedProduct
 
 
@@ -20,5 +20,5 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class DamagedProductViewSet(viewsets.ModelViewSet):
     queryset = DamagedProduct.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = DamagedProductSerializer
     permission_classes = [permissions.IsAuthenticated]
