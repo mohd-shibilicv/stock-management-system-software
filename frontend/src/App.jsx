@@ -24,14 +24,14 @@ function App() {
           <TokenExpirationModal />
           <Routes>
             <Route
-              path="/login"
+              path="/"
               element={
                 <AuthenticatedRoute>
                   <LoginPage />
                 </AuthenticatedRoute>
               }
             />
-            <Route path="/" element={<GeneralViewPage />} />
+            {/* <Route path="/" element={<GeneralViewPage />} /> */}
             <Route
               path="/branch/*"
               element={

@@ -22,7 +22,7 @@ const LogoutBtn = () => {
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap();
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error(`Failed to log out: ${error}`);
     }

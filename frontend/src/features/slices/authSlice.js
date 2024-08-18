@@ -59,6 +59,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.user = action.payload.user;
       state.token = action.payload.access;
+      state.error = null;
       state.refreshToken = action.payload.refresh;
       state.isTokenExpired = false;
     })
