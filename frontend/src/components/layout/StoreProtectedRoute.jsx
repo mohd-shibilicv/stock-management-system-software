@@ -19,8 +19,10 @@ export const StoreProtectedRoute = ({ children, allowedRoles }) => {
 export const AuthenticatedRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
 
-  if (user) {
-    return <Navigate to="/" />;
+  if (user?.role === "admin") {
+    return <Navigate to="/store" />;
+  } else if (user?.role === "branch_manager") {
+    return <Navigate to="/branch" />;
   }
 
   return children;
