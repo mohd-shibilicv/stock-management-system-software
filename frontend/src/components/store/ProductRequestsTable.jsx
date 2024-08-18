@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import {
   flexRender,
   getCoreRowModel,
@@ -8,7 +7,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  MoreHorizontal,
+  PlusCircle,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,42 +42,74 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { api, fetchBranchProducts } from "@/services/api";
-import BarcodeModal from "../modals/BarcodeModal";
+import {
+  api,
+  fetchBranches,
+  fetchProductRequests,
+  fetchStoreProducts,
+} from "@/services/api";
+import ProductRequestModal from "../modals/ProductRequestModal";
+import ConfirmationModal from "../modals/ConfirmationModal";
+import { Label } from "../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-export const BranchProductsTable = () => {
+export const ProductRequestsTable = () => {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [data, setData] = useState([]);
-  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
-  const [selectedBarcode, setSelectedBarcode] = useState(null);
-  const [selectedProductName, setSelectedProductName] = useState("");
+  const [products, setProducts] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState(null);
 
   useEffect(() => {
-    fetchBranchProducts()
+    fetchProductRequests()
       .then((data) => setData(data.results))
       .catch((error) =>
-        console.log(`Error fetching branch products: ${error}`)
+        console.log(`Error fetching product requests: ${error}`)
       );
+
+    fetchStoreProducts()
+      .then((data) => setProducts(data.results))
+      .catch((error) => console.log(`Error fetching products: ${error}`));
+
+    fetchBranches()
+      .then((data) => setBranches(data.results))
+      .catch((error) => console.log(`Error fetching branches: ${error}`));
   }, []);
 
-  const handleShowBarcode = (product) => {
-    const productBarcode = `${import.meta.env.VITE_APP_MEDIA_BASE_URL}/${product.product_barcode}`
-    
-    setSelectedBarcode(productBarcode);
-    setSelectedProductName(product.product_name);
-    setIsBarcodeModalOpen(true);
-  };
-
-  const updateProductQuantity = useCallback((id, newQuantity) => {
+  const updateRequestStatus = useCallback((id, newStatus) => {
     setData((prevData) =>
-      prevData.map((product) =>
-        product.id === id ? { ...product, quantity: newQuantity } : product
+      prevData.map((request) =>
+        request.id === id ? { ...request, status: newStatus } : request
       )
     );
   }, []);
+
+  const handleCreateRequest = async (formData) => {
+    try {
+      const response = await api.post("/product-requests/", formData);
+      setData((prevData) => [...prevData, response.data]);
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error("Failed to create product request:", error);
+    }
+  };
+
+  const handleDeleteRequest = async () => {
+    try {
+      await api.delete(`/product-requests/${selectedRequestId}/`);
+      setData((prevData) =>
+        prevData.filter((request) => request.id !== selectedRequestId)
+      );
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete product request:", error);
+    }
+  };
 
   const columns = [
     {
@@ -105,26 +141,16 @@ export const BranchProductsTable = () => {
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Product Name
+          Product
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => <div>{row.getValue("product_name")}</div>,
     },
     {
-      accessorKey: "product_sku",
-      header: "SKU",
-      cell: ({ row }) => <div>{row.getValue("product_sku")}</div>,
-    },
-    {
-      accessorKey: "product_category",
-      header: "Category",
-      cell: ({ row }) => <div>{row.getValue("product_category")}</div>,
-    },
-    {
-      accessorKey: "product_brand",
-      header: "Brand",
-      cell: ({ row }) => <div>{row.getValue("product_brand")}</div>,
+      accessorKey: "branch_name",
+      header: "Branch",
+      cell: ({ row }) => <div>{row.getValue("branch_name")}</div>,
     },
     {
       accessorKey: "quantity",
@@ -137,52 +163,84 @@ export const BranchProductsTable = () => {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row }) => <div>{row.getValue("quantity")}</div>,
+    },
+    {
+      accessorKey: "date_requested",
+      header: "Date Requested",
+      cell: ({ row }) => (
+        <div>{new Date(row.getValue("date_requested")).toLocaleString()}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
       cell: ({ row }) => {
+        const status = row.getValue("status");
         const [isOpen, setIsOpen] = useState(false);
-        const [newQuantity, setNewQuantity] = useState(
-          row.getValue("quantity")
-        );
+        const [newStatus, setNewStatus] = useState(row.getValue("status"));
 
-        const handleQuantityChange = async () => {
+        const handleStatusChange = async () => {
           try {
-            await api.post(
-              `/branch-products/${row.original.id}/update_quantity/`,
-              { quantity: newQuantity }
-            );
-            updateProductQuantity(row.original.id, newQuantity);
+            await api.patch(`/product-requests/${row.original.id}/`, {
+              status: newStatus,
+            });
+            updateRequestStatus(row.original.id, newStatus);
             setIsOpen(false);
           } catch (error) {
-            console.error("Failed to update quantity:", error);
+            console.error("Failed to update status:", error);
           }
         };
 
         return (
           <>
             <div onClick={() => setIsOpen(true)} className="cursor-pointer">
-              {row.getValue("quantity")}
+              {status === "pending" ? (
+                <p className="text-yellow-900 bg-yellow-100 p-2 capitalize rounded-md shadow-md">
+                  {status}
+                </p>
+              ) : status === "fulfilled" ? (
+                <p className="text-green-900 bg-green-100 p-2 capitalize rounded-md shadow-md">
+                  {status}
+                </p>
+              ) : (
+                <p className="text-indigo-900 bg-indigo-100 p-2 capitalize rounded-md shadow-md">
+                  {status}
+                </p>
+              )}
             </div>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Update Quantity</DialogTitle>
+                  <DialogTitle>Update Status</DialogTitle>
                   <DialogDescription></DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="quantity" className="text-right">
-                      Quantity
-                    </label>
-                    <Input
-                      id="quantity"
-                      type="number"
+                    <Label htmlFor="status" className="text-right">
+                      Status
+                    </Label>
+                    <Select
+                      id="status"
                       className="col-span-3"
-                      value={newQuantity}
-                      onChange={(e) => setNewQuantity(e.target.value)}
-                    />
+                      value={newStatus}
+                      onValueChange={(value) => setNewStatus(value)}
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue value={newStatus} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="acknowledged">
+                          Acknowledged
+                        </SelectItem>
+                        <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit" onClick={handleQuantityChange}>
+                  <Button type="submit" onClick={handleStatusChange}>
                     Save
                   </Button>
                 </DialogFooter>
@@ -196,7 +254,7 @@ export const BranchProductsTable = () => {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const product = row.original;
+        const request = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -209,15 +267,20 @@ export const BranchProductsTable = () => {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() =>
-                  navigator.clipboard.writeText(product.product_sku.toString())
+                  navigator.clipboard.writeText(request.id.toString())
                 }
               >
-                Copy product SKU
+                Copy request ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View product details</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShowBarcode(product)}>
-                Show Barcode
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedRequestId(request.id);
+                  setIsDeleteModalOpen(true);
+                }}
+                className="text-red-600"
+              >
+                Delete request
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -247,41 +310,46 @@ export const BranchProductsTable = () => {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Filter products..."
+          placeholder="Filter requests..."
           value={table.getColumn("product_name")?.getFilterValue() ?? ""}
           onChange={(event) =>
             table.getColumn("product_name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" /> New Request
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -312,7 +380,7 @@ export const BranchProductsTable = () => {
                   className="text-center"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-center">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -358,12 +426,20 @@ export const BranchProductsTable = () => {
           </Button>
         </div>
       </div>
-      <BarcodeModal
-        isOpen={isBarcodeModalOpen}
-        onClose={() => setIsBarcodeModalOpen(false)}
-        barcodeImage={selectedBarcode}
-        productName={selectedProductName}
+      <ProductRequestModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreateRequest}
+        products={products}
+        branches={branches}
+      />
+      <ConfirmationModal
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteRequest}
+        title="Delete Product Request"
+        description="Are you sure you want to delete this product request? This action cannot be undone."
       />
     </div>
   );
-}
+};

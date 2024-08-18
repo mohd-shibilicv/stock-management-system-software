@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from apps.users.models import User
@@ -7,7 +8,7 @@ from apps.products.models import Product
 class Branch(models.Model):
     name = models.CharField(max_length=255)
     location = models.TextField()
-    branch_code = models.CharField(max_length=50, unique=True)
+    branch_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
     contact_details = models.CharField(max_length=255)
     manager = models.OneToOneField(
         User, on_delete=models.SET_NULL, null=True, related_name="managed_branch"
@@ -20,12 +21,25 @@ class Branch(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.branch_code:
+            self.branch_code = self.generate_branch_code()
+        super().save(*args, **kwargs)
+
+    def generate_branch_code(self):
+        return f"{self.name[:3].upper()}-{uuid.uuid4().hex[:6].upper()}"
 
 
 class BranchProduct(models.Model):
+    PRODUCT_STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    ]
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='branch_products')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='branch_products')
     quantity = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=10, choices=PRODUCT_STATUS_CHOICES, default='inactive')
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -78,4 +92,4 @@ class ProductRequest(models.Model):
         ordering = ("-date_requested",)
 
     def __str__(self):
-        return f"{self.quantity} x {self.product_name} requested by {self.branch.name}"
+        return f"{self.quantity} x {self.product.name} requested by {self.branch.name}"

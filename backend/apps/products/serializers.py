@@ -33,7 +33,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class DamagedProductSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
     class Meta:
         model = DamagedProduct
-        fields = ['id', 'product', 'quantity', 'reason', 'date_reported']
+        fields = ['id', 'product', 'product_name', 'quantity', 'reason', 'date_reported']
         read_only_fields = ['id', 'date_reported']

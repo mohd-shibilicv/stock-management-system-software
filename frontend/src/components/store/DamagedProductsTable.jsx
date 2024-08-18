@@ -34,72 +34,74 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { api, fetchBranches } from "@/services/api";
-import BranchModal from "../modals/BranchModal";
+import { api } from "@/services/api";
+import DamagedProductModal from "../modals/DamagedProductModal";
 import ConfirmationModal from "../modals/ConfirmationModal";
 
-export function BranchesTable() {
+export const DamagedProductsTable = () => {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [data, setData] = useState([]);
-  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [isDamagedProductModalOpen, setIsDamagedProductModalOpen] =
+    useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState(null);
-  const [branchToDelete, setBranchToDelete] = useState(null);
+  const [selectedDamagedProduct, setSelectedDamagedProduct] = useState(null);
+  const [damagedProductToDelete, setDamagedProductToDelete] = useState(null);
 
   useEffect(() => {
-    fetchBranches()
-      .then((data) => setData(data.results))
-      .catch((error) => console.log(`Error fetching branches: ${error}`));
+    fetchDamagedProducts();
   }, []);
 
-  const handleFetchBranches = async () => {
+  const fetchDamagedProducts = async () => {
     try {
-      const response = await api.get("/branches/");
+      const response = await api.get("/damaged-products/");
       setData(response.data.results);
     } catch (error) {
-      console.error("Error fetching branches:", error);
+      console.error("Error fetching damaged products:", error);
     }
   };
 
-  const handleAddBranch = () => {
-    setSelectedBranch(null);
-    setIsBranchModalOpen(true);
+  const handleAddDamagedProduct = () => {
+    setSelectedDamagedProduct(null);
+    setIsDamagedProductModalOpen(true);
   };
 
-  // const handleEditBranch = (branch) => {
-  //   setSelectedBranch(branch);
-  //   setIsBranchModalOpen(true);
-  // };
+//   const handleEditDamagedProduct = (damagedProduct) => {
+//     setSelectedDamagedProduct(damagedProduct);
+//     setIsDamagedProductModalOpen(true);
+//   };
 
-  const handleDeleteBranch = (branch) => {
-    setBranchToDelete(branch);
+  const handleDeleteDamagedProduct = (damagedProduct) => {
+    setDamagedProductToDelete(damagedProduct);
     setIsDeleteModalOpen(true);
   };
 
-  const handleSaveBranch = async (formData) => {
+  const handleSaveDamagedProduct = async (formData) => {
     try {
-      if (selectedBranch) {
-        await api.put(`/branches/${selectedBranch.id}/`, formData);
+      if (selectedDamagedProduct) {
+        await api.put(
+          `/damaged-products/${selectedDamagedProduct.id}/`,
+          formData
+        );
       } else {
-        await api.post("/branches/", formData);
+        await api.post("/damaged-products/", formData);
       }
-      handleFetchBranches();
-      setIsBranchModalOpen(false);
+      fetchDamagedProducts();
+      setIsDamagedProductModalOpen(false);
     } catch (error) {
-      console.error("Error saving branch:", error);
+      console.error("Error saving damaged product:", error);
     }
   };
 
   const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/branches/${branchToDelete.id}/`);
-      handleFetchBranches();
+      await api.delete(`/damaged-products/${damagedProductToDelete.id}/`);
+      fetchDamagedProducts();
       setIsDeleteModalOpen(false);
     } catch (error) {
-      console.error("Error deleting branch:", error);
+      console.error("Error deleting damaged product:", error);
     }
   };
 
@@ -108,10 +110,7 @@ export function BranchesTable() {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
+          checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
@@ -127,37 +126,46 @@ export function BranchesTable() {
       enableHiding: false,
     },
     {
-      accessorKey: "name",
+      accessorKey: "product_name",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Product Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
     },
     {
-      accessorKey: "location",
-      header: "Location",
+      accessorKey: "quantity",
+      header: "Quantity",
     },
     {
-      accessorKey: "branch_code",
-      header: "Branch Code",
+      accessorKey: "reason",
+      header: "Reason",
     },
     {
-      accessorKey: "contact_details",
-      header: "Contact Details",
-    },
-    {
-      accessorKey: "manager",
-      header: "Manager ID",
+      accessorKey: "date_reported",
+      header: "Date Reported",
+      cell: ({ row }) => {
+        const dateReported = new Date(row.getValue("date_reported"));
+        const formatted = new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(dateReported);
+
+        return <div>{formatted}</div>;
+      },
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const branch = row.original;
+        const damagedProduct = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -168,19 +176,15 @@ export function BranchesTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(branch.id.toString())
-                }
+              {/* <DropdownMenuItem
+                onClick={() => handleEditDamagedProduct(damagedProduct)}
               >
-                Copy branch ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {/* <DropdownMenuItem onClick={() => handleEditBranch(branch)}>
-                Edit branch
+                Edit damaged product
               </DropdownMenuItem> */}
-              <DropdownMenuItem onClick={() => handleDeleteBranch(branch)}>
-                Delete branch
+              <DropdownMenuItem
+                onClick={() => handleDeleteDamagedProduct(damagedProduct)}
+              >
+                Delete damaged product
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -212,44 +216,16 @@ export function BranchesTable() {
     <div className="w-full">
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Filter branches..."
-          value={table.getColumn("name")?.getFilterValue() ?? ""}
+          placeholder="Filter damaged products..."
+          value={table.getColumn("product_name")?.getFilterValue() ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("product_name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button onClick={handleAddBranch}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Branch
-          </Button>
-        </div>
+        <Button onClick={handleAddDamagedProduct}>
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Damaged Product
+        </Button>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -257,7 +233,7 @@ export function BranchesTable() {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="text-center">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -277,7 +253,7 @@ export function BranchesTable() {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-center">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -300,42 +276,36 @@ export function BranchesTable() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
       </div>
-      <BranchModal
-        isOpen={isBranchModalOpen}
-        onClose={() => setIsBranchModalOpen(false)}
-        onSave={handleSaveBranch}
-        branch={selectedBranch}
+      <DamagedProductModal
+        isOpen={isDamagedProductModalOpen}
+        onClose={() => setIsDamagedProductModalOpen(false)}
+        onSave={handleSaveDamagedProduct}
+        damagedProduct={selectedDamagedProduct}
       />
       <ConfirmationModal
         open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Confirm Deletion"
-        description="Are you sure you want to delete this branch? This action cannot be undone."
+        description="Are you sure you want to delete this damaged product record? This action cannot be undone."
       />
     </div>
   );
-}
+};

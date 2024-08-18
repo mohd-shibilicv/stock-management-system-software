@@ -75,3 +75,9 @@ class DamagedProduct(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
+    
+    def save(self, *args, **kwargs):
+        # Deduct the damaged quantity from the product's quantity
+        self.product.quantity -= self.quantity
+        self.product.save()
+        super().save(*args, **kwargs)
