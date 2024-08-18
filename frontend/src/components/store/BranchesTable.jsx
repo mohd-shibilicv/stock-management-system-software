@@ -69,10 +69,10 @@ export function BranchesTable() {
     setIsBranchModalOpen(true);
   };
 
-  const handleEditBranch = (branch) => {
-    setSelectedBranch(branch);
-    setIsBranchModalOpen(true);
-  };
+  // const handleEditBranch = (branch) => {
+  //   setSelectedBranch(branch);
+  //   setIsBranchModalOpen(true);
+  // };
 
   const handleDeleteBranch = (branch) => {
     setBranchToDelete(branch);
@@ -176,9 +176,9 @@ export function BranchesTable() {
                 Copy branch ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEditBranch(branch)}>
+              {/* <DropdownMenuItem onClick={() => handleEditBranch(branch)}>
                 Edit branch
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem onClick={() => handleDeleteBranch(branch)}>
                 Delete branch
               </DropdownMenuItem>

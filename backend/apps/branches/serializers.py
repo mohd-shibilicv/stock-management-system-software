@@ -6,7 +6,7 @@ class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = ['id', 'name', 'location', 'branch_code', 'contact_details', 'manager']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'branch_code']
 
 
 class BranchProductSerializer(serializers.ModelSerializer):

@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from apps.users.models import User
@@ -7,7 +8,7 @@ from apps.products.models import Product
 class Branch(models.Model):
     name = models.CharField(max_length=255)
     location = models.TextField()
-    branch_code = models.CharField(max_length=50, unique=True)
+    branch_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
     contact_details = models.CharField(max_length=255)
     manager = models.OneToOneField(
         User, on_delete=models.SET_NULL, null=True, related_name="managed_branch"
@@ -20,6 +21,14 @@ class Branch(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.branch_code:
+            self.branch_code = self.generate_branch_code()
+        super().save(*args, **kwargs)
+
+    def generate_branch_code(self):
+        return f"{self.name[:3].upper()}-{uuid.uuid4().hex[:6].upper()}"
 
 
 class BranchProduct(models.Model):

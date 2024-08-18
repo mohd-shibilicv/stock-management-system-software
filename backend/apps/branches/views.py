@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.core.exceptions import PermissionDenied
 from .serializers import (
     BranchSerializer,
     ProductRequestSerializer,
@@ -11,9 +12,21 @@ from .models import Branch, ProductRequest, BranchProduct
 
 
 class BranchViewSet(viewsets.ModelViewSet):
-    queryset = Branch.objects.all()
     serializer_class = BranchSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'admin':
+            return Branch.objects.all()
+        elif user.role == 'branch_manager':
+            return Branch.objects.filter(manager=user)
+        return Branch.objects.none()
+
+    def perform_update(self, serializer):
+        if self.request.user.role != 'branch_manager':
+            raise PermissionDenied("Only branch managers can update branch details.")
+        serializer.save()
 
 
 class BranchProductViewSet(viewsets.ModelViewSet):

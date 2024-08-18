@@ -15,7 +15,6 @@ const BranchModal = ({ isOpen, onClose, onSave, branch }) => {
   const [formData, setFormData] = useState({
     name: "",
     location: "",
-    branch_code: "",
     contact_details: "",
     manager: "",
   });
@@ -27,7 +26,6 @@ const BranchModal = ({ isOpen, onClose, onSave, branch }) => {
       setFormData({
         name: "",
         location: "",
-        branch_code: "",
         contact_details: "",
         manager: "",
       });
@@ -73,18 +71,6 @@ const BranchModal = ({ isOpen, onClose, onSave, branch }) => {
                 id="location"
                 name="location"
                 value={formData.location}
-                onChange={handleChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="branch_code" className="text-right">
-                Branch Code
-              </Label>
-              <Input
-                id="branch_code"
-                name="branch_code"
-                value={formData.branch_code}
                 onChange={handleChange}
                 className="col-span-3"
               />

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from apps.users.views import UserRegisterViewSet, LogoutView, LoginViewSet, RefreshViewSet
+from apps.users.views import UserRegisterViewSet, LogoutView, LoginViewSet, RefreshViewSet, UserViewSet
 from apps.products.views import ProductViewSet, DamagedProductViewSet
 from apps.branches.views import BranchViewSet, ProductRequestViewSet, BranchProductViewSet
 from apps.suppliers.views import SupplierViewSet
@@ -13,6 +13,7 @@ from apps.reports.views import ProductInflowViewSet, ProductOutflowViewSet
 router = DefaultRouter()
 
 # Auth
+router.register(r'users', UserViewSet, basename='users')
 router.register(r'register', UserRegisterViewSet, basename='register')
 router.register(r'login', LoginViewSet, basename='login')
 router.register(r'refresh', RefreshViewSet, basename='refresh')
