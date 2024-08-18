@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,51 +17,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { api } from "@/services/api";
 
-const DamagedProductModal = ({ isOpen, onClose, onSave, damagedProduct }) => {
+const BranchProductRequestModal = ({ isOpen, onClose, onSave, products }) => {
   const [formData, setFormData] = useState({
     product: "",
     quantity: "",
-    reason: "",
   });
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchProducts();
-      if (damagedProduct) {
-        setFormData({
-          product: damagedProduct.product,
-          quantity: damagedProduct.quantity.toString(),
-          reason: damagedProduct.reason,
-        });
-      } else {
-        setFormData({
-          product: "",
-          quantity: "",
-          reason: "",
-        });
-      }
-    }
-  }, [isOpen, damagedProduct]);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await api.get("/products/");
-      setProducts(response.data.results);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
+    setFormData({
+      product: "",
+      quantity: "",
+    });
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleProductChange = (value) => {
@@ -72,27 +43,19 @@ const DamagedProductModal = ({ isOpen, onClose, onSave, damagedProduct }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await onSave(formData);
-      onClose();
-    } catch (error) {
-      console.error("Error saving damaged product:", error);
-    } finally {
-      setLoading(false);
-    }
+    onSave(formData);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {damagedProduct ? "Edit Damaged Product" : "Add Damaged Product"}
-          </DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogTitle>Create Product Request</DialogTitle>
+          <DialogDescription>
+            Request products for your branch
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -101,9 +64,11 @@ const DamagedProductModal = ({ isOpen, onClose, onSave, damagedProduct }) => {
                 Product
               </Label>
               <Select
+                id="product"
+                name="product"
                 value={formData.product}
                 onValueChange={handleProductChange}
-                required
+                className="col-span-3"
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a product" />
@@ -128,28 +93,11 @@ const DamagedProductModal = ({ isOpen, onClose, onSave, damagedProduct }) => {
                 value={formData.quantity}
                 onChange={handleChange}
                 className="col-span-3"
-                required
-                min="1"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="reason" className="text-right">
-                Reason
-              </Label>
-              <Textarea
-                id="reason"
-                name="reason"
-                value={formData.reason}
-                onChange={handleChange}
-                className="col-span-3"
-                required
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save"}
-            </Button>
+            <Button type="submit">Create Request</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -157,4 +105,4 @@ const DamagedProductModal = ({ isOpen, onClose, onSave, damagedProduct }) => {
   );
 };
 
-export default DamagedProductModal;
+export default BranchProductRequestModal;

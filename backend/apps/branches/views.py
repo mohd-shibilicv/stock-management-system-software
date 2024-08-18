@@ -37,6 +37,18 @@ class BranchProductViewSet(viewsets.ModelViewSet):
 
 
 class ProductRequestViewSet(viewsets.ModelViewSet):
-    queryset = ProductRequest.objects.all()
     serializer_class = ProductRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == "branch_manager":
+            return ProductRequest.objects.filter(branch=user.managed_branch)
+        return ProductRequest.objects.all()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == "branch_manager":
+            serializer.save(branch=user.managed_branch)
+        else:
+            serializer.save()
