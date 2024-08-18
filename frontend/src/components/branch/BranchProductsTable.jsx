@@ -39,6 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api, fetchBranchProducts } from "@/services/api";
+import BarcodeModal from "../modals/BarcodeModal";
 
 export const BranchProductsTable = () => {
   const [sorting, setSorting] = useState([]);
@@ -46,6 +47,9 @@ export const BranchProductsTable = () => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [data, setData] = useState([]);
+  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
+  const [selectedBarcode, setSelectedBarcode] = useState(null);
+  const [selectedProductName, setSelectedProductName] = useState("");
 
   useEffect(() => {
     fetchBranchProducts()
@@ -54,6 +58,14 @@ export const BranchProductsTable = () => {
         console.log(`Error fetching branch products: ${error}`)
       );
   }, []);
+
+  const handleShowBarcode = (product) => {
+    const productBarcode = `${import.meta.env.VITE_APP_MEDIA_BASE_URL}/${product.product_barcode}`
+    
+    setSelectedBarcode(productBarcode);
+    setSelectedProductName(product.product_name);
+    setIsBarcodeModalOpen(true);
+  };
 
   const updateProductQuantity = useCallback((id, newQuantity) => {
     setData((prevData) =>
@@ -204,7 +216,9 @@ export const BranchProductsTable = () => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>View product details</DropdownMenuItem>
-              <DropdownMenuItem>Edit product</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShowBarcode(product)}>
+                Show Barcode
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -344,6 +358,12 @@ export const BranchProductsTable = () => {
           </Button>
         </div>
       </div>
+      <BarcodeModal
+        isOpen={isBarcodeModalOpen}
+        onClose={() => setIsBarcodeModalOpen(false)}
+        barcodeImage={selectedBarcode}
+        productName={selectedProductName}
+      />
     </div>
   );
 }
