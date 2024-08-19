@@ -43,11 +43,15 @@ class ProductOutflowSerializer(serializers.ModelSerializer):
 
 class InwardQtyReportSerializer(serializers.Serializer):
     product__name = serializers.CharField()
+    supplier__name = serializers.CharField()
+    expiry_date = serializers.DateField()
     total_quantity = serializers.IntegerField()
 
 
 class OutwardQtyReportSerializer(serializers.Serializer):
     product__name = serializers.CharField()
+    branch__name = serializers.CharField()
+    expiry_date = serializers.DateField()
     total_quantity = serializers.IntegerField()
 
 
@@ -92,3 +96,30 @@ class ProductDetailsReportSerializer(serializers.Serializer):
     total_inflow = serializers.IntegerField()
     total_outflow = serializers.IntegerField()
     closing_stock = serializers.IntegerField()
+
+
+class BranchDailyReportSerializer(serializers.Serializer):
+    inflows = serializers.SerializerMethodField()
+
+    def get_inflows(self, obj):
+        return [
+            {
+                "product_name": inflow.product.name,
+                "quantity_received": inflow.quantity_received,
+                "date_received": inflow.date_received,
+            }
+            for inflow in obj["inflows"]
+        ]
+
+
+class BranchProductDetailsReportSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    sku = serializers.CharField()
+    quantity = serializers.IntegerField()
+    status = serializers.CharField()
+
+
+class BranchExpiredProductReportSerializer(serializers.Serializer):
+    product_name = serializers.CharField()
+    expiry_date = serializers.DateField()
+    quantity = serializers.IntegerField()

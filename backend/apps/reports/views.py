@@ -15,9 +15,12 @@ from .serializers import (
     DailyReportSerializer,
     ProductDetailsReportSerializer,
     SupplierWiseProductReportSerializer,
+    BranchDailyReportSerializer,
+    BranchExpiredProductReportSerializer,
+    BranchProductDetailsReportSerializer,
 )
-from apps.products.models import Product, DamagedProduct
-from apps.branches.models import BranchProduct
+from apps.products.models import Product
+from apps.branches.models import BranchProduct, ProductRequest
 from .models import ProductInflow, ProductOutflow
 
 
@@ -38,7 +41,9 @@ class InwardQtyReportView(APIView):
 
     def get(self, request):
         inflows = (
-            ProductInflow.objects.values("product__name")
+            ProductInflow.objects.values(
+                "product__name", "supplier__name", "expiry_date"
+            )
             .annotate(total_quantity=Sum("quantity_received"))
             .order_by("-total_quantity")
         )
@@ -51,7 +56,9 @@ class OutwardQtyReportView(APIView):
 
     def get(self, request):
         outflows = (
-            ProductOutflow.objects.values("product__name")
+            ProductOutflow.objects.values(
+                "product__name", "branch__name", "expiry_date"
+            )
             .annotate(total_quantity=Sum("quantity_sent"))
             .order_by("-total_quantity")
         )
@@ -153,4 +160,68 @@ class ProductDetailsReportView(APIView):
             closing_stock=F("quantity"),
         ).values("name", "sku", "total_inflow", "total_outflow", "closing_stock")
         serializer = ProductDetailsReportSerializer(products, many=True)
+        return Response(serializer.data)
+
+
+class BranchDailyReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        branch = request.user.managed_branch
+        today = datetime.now().date()
+
+        inflows = ProductRequest.objects.filter(
+            branch=branch, status="fulfilled", date_requested__date=today
+        )
+
+        data = {
+            "inflows": inflows,
+        }
+
+        serializer = BranchDailyReportSerializer(data)
+        return Response(serializer.data)
+
+
+class BranchProductDetailsReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        branch = request.user.managed_branch
+        branch_products = BranchProduct.objects.filter(branch=branch).select_related(
+            "product"
+        )
+
+        products = [
+            {
+                "name": bp.product.name,
+                "sku": bp.product.sku,
+                "quantity": bp.quantity,
+                "status": bp.status,
+            }
+            for bp in branch_products
+        ]
+
+        serializer = BranchProductDetailsReportSerializer(products, many=True)
+        return Response(serializer.data)
+
+
+class BranchExpiredProductReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        branch = request.user.managed_branch
+        today = datetime.now().date()
+
+        expired_products = (
+            BranchProduct.objects.filter(
+                branch=branch, product__productinflow__expiry_date__lte=today
+            )
+            .annotate(
+                product_name=F("product__name"),
+                expiry_date=F("product__productinflow__expiry_date"),
+            )
+            .values("product_name", "expiry_date", "quantity")
+        )
+
+        serializer = BranchExpiredProductReportSerializer(expired_products, many=True)
         return Response(serializer.data)

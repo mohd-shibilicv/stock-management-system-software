@@ -29,6 +29,9 @@ from apps.reports.views import (
     ClosedProductReportView,
     DailyReportView,
     ProductDetailsReportView,
+    BranchDailyReportView,
+    BranchExpiredProductReportView,
+    BranchProductDetailsReportView,
 )
 
 
@@ -58,7 +61,7 @@ urlpatterns = [
     path("api/logout/", LogoutView.as_view({"post": "logout"}), name="logout"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Reports
+# Store Reports
 urlpatterns += [
     path(
         "api/reports/inward-qty/",
@@ -100,5 +103,24 @@ urlpatterns += [
         "api/reports/product-details/",
         ProductDetailsReportView.as_view(),
         name="product-details-report",
+    ),
+]
+
+# Branch Reports
+urlpatterns += [
+    path(
+        "api/branch/reports/daily/",
+        BranchDailyReportView.as_view(),
+        name="branch-daily-report",
+    ),
+    path(
+        "api/branch/reports/product-details/",
+        BranchProductDetailsReportView.as_view(),
+        name="branch-product-details-report",
+    ),
+    path(
+        "api/branch/reports/expired-products/",
+        BranchExpiredProductReportView.as_view(),
+        name="branch-expired-product-report",
     ),
 ]

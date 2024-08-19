@@ -40,6 +40,15 @@ import {
 } from "@/components/ui/table";
 import { api, fetchBranchProducts } from "@/services/api";
 import BarcodeModal from "../modals/BarcodeModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Label } from "../ui/label";
+import { Switch } from "../ui/switch";
 
 export const BranchProductsTable = () => {
   const [sorting, setSorting] = useState([]);
@@ -60,8 +69,10 @@ export const BranchProductsTable = () => {
   }, []);
 
   const handleShowBarcode = (product) => {
-    const productBarcode = `${import.meta.env.VITE_APP_MEDIA_BASE_URL}/${product.product_barcode}`
-    
+    const productBarcode = `${import.meta.env.VITE_APP_MEDIA_BASE_URL}/${
+      product.product_barcode
+    }`;
+
     setSelectedBarcode(productBarcode);
     setSelectedProductName(product.product_name);
     setIsBarcodeModalOpen(true);
@@ -71,6 +82,14 @@ export const BranchProductsTable = () => {
     setData((prevData) =>
       prevData.map((product) =>
         product.id === id ? { ...product, quantity: newQuantity } : product
+      )
+    );
+  }, []);
+
+  const updateProductStatus = useCallback((id, newStatus) => {
+    setData((prevData) =>
+      prevData.map((request) =>
+        request.id === id ? { ...request, status: newStatus } : request
       )
     );
   }, []);
@@ -158,9 +177,13 @@ export const BranchProductsTable = () => {
 
         return (
           <>
-            <div onClick={() => setIsOpen(true)} className="cursor-pointer">
-              {row.getValue("quantity")}
-            </div>
+            {row.getValue("status") === "inactive" ? (
+              <div>{row.getValue("quantity")}</div>
+            ) : (
+              <div onClick={() => setIsOpen(true)} className="cursor-pointer">
+                {row.getValue("quantity")}
+              </div>
+            )}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -189,6 +212,46 @@ export const BranchProductsTable = () => {
               </DialogContent>
             </Dialog>
           </>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status");
+        const [isActive, setIsActive] = useState(status === "active");
+
+        const handleStatusToggle = async () => {
+          const newStatus = isActive ? "inactive" : "active";
+          try {
+            await api.patch(`/branch-products/${row.original.id}/`, {
+              status: newStatus,
+            });
+            updateProductStatus(row.original.id, newStatus);
+            setIsActive(!isActive);
+          } catch (error) {
+            console.error("Failed to update status:", error);
+          }
+        };
+
+        return (
+          <div className="flex items-center justify-center space-x-2">
+            <Switch
+              checked={isActive}
+              onCheckedChange={handleStatusToggle}
+              className={`${
+                isActive ? "bg-green-500" : "bg-gray-300"
+              } transition-colors`}
+            />
+            <span
+              className={`capitalize ${
+                isActive ? "text-green-600" : "text-gray-600"
+              }`}
+            >
+              {isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
         );
       },
     },
@@ -366,4 +429,4 @@ export const BranchProductsTable = () => {
       />
     </div>
   );
-}
+};

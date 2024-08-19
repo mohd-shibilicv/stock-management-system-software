@@ -136,59 +136,8 @@ const ReportComponent = ({ title, endpoint, columns }) => {
   );
 };
 
-const reportConfigs = [
-  {
-    id: "inward",
-    title: "Inward Quantity Report",
-    endpoint: "/reports/inward-qty/",
-    columns: ["Product  Name", "Supplier  Name", "Total Quantity", "Expiry Date"],
-  },
-  {
-    id: "outward",
-    title: "Outward Quantity Report",
-    endpoint: "/reports/outward-qty/",
-    columns: ["Product  Name", "Branch  Name", "Total Quantity", "Expiry Date"],
-  },
-  {
-    id: "branch-wise",
-    title: "Branch-Wise Quantity Report",
-    endpoint: "/reports/branch-wise-qty/",
-    columns: ["Branch  Name", "Product  Name", "Total Quantity"],
-  },
-  {
-    id: "expired",
-    title: "Expired Product Report",
-    endpoint: "/reports/expired-products/",
-    columns: ["Product  Name", "Expiry Date", "Quantity"],
-  },
-  {
-    id: "supplier-wise",
-    title: "Supplier-Wise Product Report",
-    endpoint: "/reports/supplier-wise-products/",
-    columns: ["Supplier  Name", "Product  Name", "Total Quantity"],
-  },
-  {
-    id: "opened",
-    title: "Opened Product Report",
-    endpoint: "/reports/opened-products/",
-    columns: ["Product  Name", "Branch  Name", "Quantity"],
-  },
-  {
-    id: "closed",
-    title: "Closed Product Report",
-    endpoint: "/reports/closed-products/",
-    columns: ["Product  Name", "Branch  Name", "Quantity"],
-  },
-  {
-    id: "product-details",
-    title: "Product Details Report",
-    endpoint: "/reports/product-details/",
-    columns: ["Name", "SKU", "Total Inflow", "Total Outflow", "Closing Stock"],
-  },
-];
-
 const DailyReport = () => {
-  const { data, loading, error } = useReport("/reports/daily/");
+  const { data, loading, error } = useReport("/branch/reports/daily/");
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -200,14 +149,7 @@ const DailyReport = () => {
           <h3 className="text-lg font-semibold mb-2">Inflows</h3>
           <ReportTable
             data={data.inflows}
-            columns={["Product Name", "Quantity Received"]}
-          />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Outflows</h3>
-          <ReportTable
-            data={data.outflows}
-            columns={["Product Name", "Quantity Sent"]}
+            columns={["Product Name", "Quantity Received", "Date Received"]}
           />
         </div>
       </div>
@@ -215,13 +157,28 @@ const DailyReport = () => {
   );
 };
 
-const StoreReports = () => {
-  const [activeTab, setActiveTab] = useState("inward");
+const reportConfigs = [
+  {
+    id: "product-details",
+    title: "Product Details Report",
+    endpoint: "/branch/reports/product-details/",
+    columns: ["Name", "SKU", "Quantity", "Status"],
+  },
+  {
+    id: "expired",
+    title: "Expired Product Report",
+    endpoint: "/branch/reports/expired-products/",
+    columns: ["Product Name", "Expiry Date", "Quantity"],
+  },
+];
+
+const BranchReports = () => {
+  const [activeTab, setActiveTab] = useState("product-details");
 
   return (
     <Layout>
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6">Store Reports</h1>
+        <h1 className="text-3xl font-bold mb-6">Branch Reports</h1>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 mb-6">
             {reportConfigs.map((config) => (
@@ -257,4 +214,4 @@ const StoreReports = () => {
   );
 };
 
-export default StoreReports;
+export default BranchReports;
