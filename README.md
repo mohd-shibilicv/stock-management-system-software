@@ -169,3 +169,23 @@ npm run dev
 
 ### Reports
 - Generate various reports on inventory, product usage, and more.
+
+## Screenshots
+
+1. Login
+![Login](/documentation/screenshots/login.png)
+
+2. Store Products
+![Store Products](/documentation/screenshots/store_products.png)
+
+3. Product Requests
+![Product Requests](/documentation/screenshots/product_requests.png)
+
+4. Store Reports
+![Store Reports](/documentation/screenshots/store_reports.png)
+
+5. Branch Inventory
+![Branch Inventory](/documentation/screenshots/branch_inventory.png)
+
+6. Branch Profile
+![Branch Profile](/documentation/screenshots/branch_profile.png)
