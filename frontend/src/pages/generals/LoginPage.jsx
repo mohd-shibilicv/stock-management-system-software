@@ -49,7 +49,7 @@ const LoginPage = () => {
         // Navigation will be handled by the useEffect hook
       } catch (error) {
         console.error("Login failed:", error);
-        // Error handling is now managed by the Redux state
+        // Error handling is managed by the Redux state
       }
     },
   });
