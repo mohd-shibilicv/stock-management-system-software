@@ -204,12 +204,18 @@ export const ProductInflowsTable = () => {
     {
       accessorKey: "manufacturing_date",
       header: "Manufacturing Date",
-      cell: ({ row }) => <div>{row.getValue("manufacturing_date")}</div>,
+      cell: ({ row }) =>
+        row.getValue("manufacturing_date")
+          ? format(new Date(row.getValue("manufacturing_date")), "PPP")
+          : "N/A",
     },
     {
       accessorKey: "expiry_date",
       header: "Expiry Date",
-      cell: ({ row }) => <div>{row.getValue("expiry_date")}</div>,
+      cell: ({ row }) =>
+        row.getValue("expiry_date")
+          ? format(new Date(row.getValue("expiry_date")), "PPP")
+          : "N/A",
     },
     {
       accessorKey: "date_received",

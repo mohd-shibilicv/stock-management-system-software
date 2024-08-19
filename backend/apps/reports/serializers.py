@@ -23,14 +23,19 @@ class ProductInflowSerializer(serializers.ModelSerializer):
 
 
 class ProductOutflowSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+
     class Meta:
         model = ProductOutflow
         fields = [
             "id",
             "product",
+            "product_name",
             "branch",
+            "branch_name",
             "quantity_sent",
             "expiry_date",
             "date_sent",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "date_sent"]
