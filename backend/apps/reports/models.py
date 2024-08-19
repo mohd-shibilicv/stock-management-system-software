@@ -18,6 +18,12 @@ class ProductInflow(models.Model):
 
     def __str__(self):
         return f"{self.quantity_received} x {self.product.name} from {self.supplier.name}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        self.product.quantity = F('quantity') + self.quantity_received
+        self.product.save()
 
 
 class ProductOutflow(models.Model):

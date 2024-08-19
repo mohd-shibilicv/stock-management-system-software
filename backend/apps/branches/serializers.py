@@ -10,7 +10,7 @@ class BranchSerializer(serializers.ModelSerializer):
 
 
 class BranchProductSerializer(serializers.ModelSerializer):
-    product_barcode = serializers.CharField(source='product.barcode_image')
+    product_barcode = serializers.CharField(source='product.barcode_image', read_only=True)
 
     class Meta:
         model = BranchProduct
