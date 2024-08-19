@@ -38,7 +38,7 @@ class InwardQtyReportView(APIView):
 
     def get(self, request):
         inflows = (
-            ProductInflow.objects.values("product__name")
+            ProductInflow.objects.values("product__name", "supplier__name", "expiry_date")
             .annotate(total_quantity=Sum("quantity_received"))
             .order_by("-total_quantity")
         )
@@ -51,7 +51,7 @@ class OutwardQtyReportView(APIView):
 
     def get(self, request):
         outflows = (
-            ProductOutflow.objects.values("product__name")
+            ProductOutflow.objects.values("product__name", "branch__name", "expiry_date")
             .annotate(total_quantity=Sum("quantity_sent"))
             .order_by("-total_quantity")
         )

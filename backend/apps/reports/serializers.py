@@ -43,11 +43,15 @@ class ProductOutflowSerializer(serializers.ModelSerializer):
 
 class InwardQtyReportSerializer(serializers.Serializer):
     product__name = serializers.CharField()
+    supplier__name = serializers.CharField()
+    expiry_date = serializers.DateField()
     total_quantity = serializers.IntegerField()
 
 
 class OutwardQtyReportSerializer(serializers.Serializer):
     product__name = serializers.CharField()
+    branch__name = serializers.CharField()
+    expiry_date = serializers.DateField()
     total_quantity = serializers.IntegerField()
 
 

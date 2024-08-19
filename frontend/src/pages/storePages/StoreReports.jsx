@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,32 +10,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { api } from "@/services/api";
 import Layout from "@/components/layout/Layout";
 
 const ReportTable = ({ data, columns }) => (
-  <Table>
-    <TableHeader>
-      <TableRow>
-        {columns.map((column, index) => (
-          <TableHead key={index}>{column}</TableHead>
-        ))}
-      </TableRow>
-    </TableHeader>
-    <TableBody>
-      {data?.length > 0 ? (
-        <>
-          {data.map((row, rowIndex) => (
+  <div className="overflow-x-auto">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {columns.map((column, index) => (
+            <TableHead key={index} className="font-semibold">
+              {column}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data?.length > 0 ? (
+          data.map((row, rowIndex) => (
             <TableRow key={rowIndex}>
               {columns.map((column, colIndex) => (
                 <TableCell key={colIndex}>
@@ -44,25 +37,25 @@ const ReportTable = ({ data, columns }) => (
                 </TableCell>
               ))}
             </TableRow>
-          ))}
-        </>
-      ) : (
-        <TableRow>
-          <TableCell colSpan={columns.length} className="h-24 text-center">
-            No results.
-          </TableCell>
-        </TableRow>
-      )}
-    </TableBody>
-  </Table>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={columns.length} className="h-24 text-center">
+              No results.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  </div>
 );
 
 const ReportCard = ({ title, children }) => (
-  <Card className="w-full">
-    <CardHeader>
-      <CardTitle>{title}</CardTitle>
+  <Card className="w-full shadow-md mt-10">
+    <CardHeader className="bg-gray-50">
+      <CardTitle className="text-xl font-bold">{title}</CardTitle>
     </CardHeader>
-    <CardContent>{children}</CardContent>
+    <CardContent className="p-6">{children}</CardContent>
   </Card>
 );
 
@@ -111,7 +104,7 @@ const ReportComponent = ({ title, endpoint, columns }) => {
     return (
       <ReportCard title={title}>
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </ReportCard>
     );
@@ -135,6 +128,7 @@ const ReportComponent = ({ title, endpoint, columns }) => {
           placeholder="Search..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
         />
       </div>
       <ReportTable data={filteredData} columns={columns} />
@@ -142,61 +136,56 @@ const ReportComponent = ({ title, endpoint, columns }) => {
   );
 };
 
-const InwardQtyReport = () => (
-  <ReportComponent
-    title="Inward Quantity Report"
-    endpoint="/reports/inward-qty/"
-    columns={["Product  Name", "Total Quantity"]}
-  />
-);
-
-const OutwardQtyReport = () => (
-  <ReportComponent
-    title="Outward Quantity Report"
-    endpoint="/reports/outward-qty/"
-    columns={["Product  Name", "Total Quantity"]}
-  />
-);
-
-const BranchWiseQtyReport = () => (
-  <ReportComponent
-    title="Branch-Wise Quantity Report"
-    endpoint="/reports/branch-wise-qty/"
-    columns={["Branch  Name", "Product  Name", "Total Quantity"]}
-  />
-);
-
-const ExpiredProductReport = () => (
-  <ReportComponent
-    title="Expired Product Report"
-    endpoint="/reports/expired-products/"
-    columns={["Product  Name", "Expiry Date", "Quantity"]}
-  />
-);
-
-const SupplierWiseProductReport = () => (
-  <ReportComponent
-    title="Supplier-Wise Product Report"
-    endpoint="/reports/supplier-wise-products/"
-    columns={["Supplier  Name", "Product  Name", "Total Quantity"]}
-  />
-);
-
-const OpenedProductReport = () => (
-  <ReportComponent
-    title="Opened Product Report"
-    endpoint="/reports/opened-products/"
-    columns={["Product  Name", "Branch  Name", "Quantity"]}
-  />
-);
-
-const ClosedProductReport = () => (
-  <ReportComponent
-    title="Closed Product Report"
-    endpoint="/reports/closed-products/"
-    columns={["Product  Name", "Branch  Name", "Quantity"]}
-  />
-);
+const reportConfigs = [
+  {
+    id: "inward",
+    title: "Inward Quantity Report",
+    endpoint: "/reports/inward-qty/",
+    columns: ["Product  Name", "Supplier  Name", "Total Quantity", "Expiry Date"],
+  },
+  {
+    id: "outward",
+    title: "Outward Quantity Report",
+    endpoint: "/reports/outward-qty/",
+    columns: ["Product  Name", "Branch  Name", "Total Quantity", "Expiry Date"],
+  },
+  {
+    id: "branch-wise",
+    title: "Branch-Wise Quantity Report",
+    endpoint: "/reports/branch-wise-qty/",
+    columns: ["Branch  Name", "Product  Name", "Total Quantity"],
+  },
+  {
+    id: "expired",
+    title: "Expired Product Report",
+    endpoint: "/reports/expired-products/",
+    columns: ["Product  Name", "Expiry Date", "Quantity"],
+  },
+  {
+    id: "supplier-wise",
+    title: "Supplier-Wise Product Report",
+    endpoint: "/reports/supplier-wise-products/",
+    columns: ["Supplier  Name", "Product  Name", "Total Quantity"],
+  },
+  {
+    id: "opened",
+    title: "Opened Product Report",
+    endpoint: "/reports/opened-products/",
+    columns: ["Product  Name", "Branch  Name", "Quantity"],
+  },
+  {
+    id: "closed",
+    title: "Closed Product Report",
+    endpoint: "/reports/closed-products/",
+    columns: ["Product  Name", "Branch  Name", "Quantity"],
+  },
+  {
+    id: "product-details",
+    title: "Product Details Report",
+    endpoint: "/reports/product-details/",
+    columns: ["Name", "SKU", "Total Inflow", "Total Outflow", "Closing Stock"],
+  },
+];
 
 const DailyReport = () => {
   const { data, loading, error } = useReport("/reports/daily/");
@@ -226,14 +215,6 @@ const DailyReport = () => {
   );
 };
 
-const ProductDetailsReport = () => (
-  <ReportComponent
-    title="Product Details Report"
-    endpoint="/reports/product-details/"
-    columns={["Name", "SKU", "Total Inflow", "Total Outflow", "Closing Stock"]}
-  />
-);
-
 const StoreReports = () => {
   const [activeTab, setActiveTab] = useState("inward");
 
@@ -242,44 +223,32 @@ const StoreReports = () => {
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold mb-6">Store Reports</h1>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
-            <TabsTrigger value="inward">Inward Qty</TabsTrigger>
-            <TabsTrigger value="outward">Outward Qty</TabsTrigger>
-            <TabsTrigger value="branch-wise">Branch-Wise Qty</TabsTrigger>
-            <TabsTrigger value="expired">Expired Products</TabsTrigger>
-            <TabsTrigger value="supplier-wise">Supplier-Wise</TabsTrigger>
-            <TabsTrigger value="opened">Opened Products</TabsTrigger>
-            <TabsTrigger value="closed">Closed Products</TabsTrigger>
-            <TabsTrigger value="daily">Daily Report</TabsTrigger>
-            <TabsTrigger value="product-details">Product Details</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 mb-6">
+            {reportConfigs.map((config) => (
+              <TabsTrigger
+                key={config.id}
+                value={config.id}
+                className="px-4 py-2"
+              >
+                {config.title.split(" ")[0]}
+              </TabsTrigger>
+            ))}
+            <TabsTrigger value="daily" className="px-4 py-2">
+              Daily
+            </TabsTrigger>
           </TabsList>
-          <div className="my-6">
-            <TabsContent value="inward">
-              <InwardQtyReport />
-            </TabsContent>
-            <TabsContent value="outward">
-              <OutwardQtyReport />
-            </TabsContent>
-            <TabsContent value="branch-wise">
-              <BranchWiseQtyReport />
-            </TabsContent>
-            <TabsContent value="expired">
-              <ExpiredProductReport />
-            </TabsContent>
-            <TabsContent value="supplier-wise">
-              <SupplierWiseProductReport />
-            </TabsContent>
-            <TabsContent value="opened">
-              <OpenedProductReport />
-            </TabsContent>
-            <TabsContent value="closed">
-              <ClosedProductReport />
-            </TabsContent>
+          <div className="mt-6">
+            {reportConfigs.map((config) => (
+              <TabsContent key={config.id} value={config.id}>
+                <ReportComponent
+                  title={config.title}
+                  endpoint={config.endpoint}
+                  columns={config.columns}
+                />
+              </TabsContent>
+            ))}
             <TabsContent value="daily">
               <DailyReport />
-            </TabsContent>
-            <TabsContent value="product-details">
-              <ProductDetailsReport />
             </TabsContent>
           </div>
         </Tabs>

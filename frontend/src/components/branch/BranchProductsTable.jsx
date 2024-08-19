@@ -40,7 +40,13 @@ import {
 } from "@/components/ui/table";
 import { api, fetchBranchProducts } from "@/services/api";
 import BarcodeModal from "../modals/BarcodeModal";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 
@@ -63,8 +69,10 @@ export const BranchProductsTable = () => {
   }, []);
 
   const handleShowBarcode = (product) => {
-    const productBarcode = `${import.meta.env.VITE_APP_MEDIA_BASE_URL}/${product.product_barcode}`
-    
+    const productBarcode = `${import.meta.env.VITE_APP_MEDIA_BASE_URL}/${
+      product.product_barcode
+    }`;
+
     setSelectedBarcode(productBarcode);
     setSelectedProductName(product.product_name);
     setIsBarcodeModalOpen(true);
@@ -169,9 +177,13 @@ export const BranchProductsTable = () => {
 
         return (
           <>
-            <div onClick={() => setIsOpen(true)} className="cursor-pointer">
-              {row.getValue("quantity")}
-            </div>
+            {row.getValue("status") === "inactive" ? (
+              <div>{row.getValue("quantity")}</div>
+            ) : (
+              <div onClick={() => setIsOpen(true)} className="cursor-pointer">
+                {row.getValue("quantity")}
+              </div>
+            )}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -209,7 +221,7 @@ export const BranchProductsTable = () => {
       cell: ({ row }) => {
         const status = row.getValue("status");
         const [isActive, setIsActive] = useState(status === "active");
-    
+
         const handleStatusToggle = async () => {
           const newStatus = isActive ? "inactive" : "active";
           try {
@@ -222,7 +234,7 @@ export const BranchProductsTable = () => {
             console.error("Failed to update status:", error);
           }
         };
-    
+
         return (
           <div className="flex items-center justify-center space-x-2">
             <Switch
@@ -417,4 +429,4 @@ export const BranchProductsTable = () => {
       />
     </div>
   );
-}
+};
