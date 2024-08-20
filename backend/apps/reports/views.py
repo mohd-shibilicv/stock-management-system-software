@@ -1,9 +1,11 @@
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Sum, F
+from django.utils import timezone
+from django.db.models import Sum, F, Count, IntegerField
+from django.db.models.functions import Coalesce, Cast
 from .serializers import (
     ProductInflowSerializer,
     ProductOutflowSerializer,
@@ -19,6 +21,11 @@ from .serializers import (
     BranchDailyReportSerializer,
     BranchExpiredProductReportSerializer,
     BranchProductDetailsReportSerializer,
+    BranchOverviewSerializer,
+    TopProductsSerializer,
+    ProductRequestStatusSerializer,
+    ProductOutflowDashboardSerializer,
+    BranchProductInventorySerializer,
 )
 from apps.products.models import Product
 from apps.branches.models import Branch, BranchProduct, ProductRequest
@@ -84,7 +91,7 @@ class ExpiredProductReportView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        today = datetime.now().date()
+        today = timezone.now().date()
         expired_products = (
             ProductInflow.objects.filter(expiry_date__lte=today)
             .values("product__name", "expiry_date")
@@ -140,7 +147,7 @@ class DailyReportView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        today = datetime.now().date()
+        today = timezone.now().date()
         inflows = ProductInflow.objects.filter(date_received=today)
         outflows = ProductOutflow.objects.filter(date_sent=today)
         data = {
@@ -169,7 +176,7 @@ class BranchDailyReportView(APIView):
 
     def get(self, request):
         branch = request.user.managed_branch
-        today = datetime.now().date()
+        today = timezone.now().date()
 
         inflows = ProductRequest.objects.filter(
             branch=branch, status="fulfilled", date_requested__date=today
@@ -211,7 +218,7 @@ class BranchExpiredProductReportView(APIView):
 
     def get(self, request):
         branch = request.user.managed_branch
-        today = datetime.now().date()
+        today = timezone.now().date()
 
         expired_products = (
             BranchProduct.objects.filter(
@@ -236,7 +243,7 @@ class DashboardView(APIView):
         period = request.query_params.get("period", "daily")
 
         # Calculate date range based on the period
-        end_date = datetime.now().date()
+        end_date = timezone.now().date()
         if period == "daily":
             start_date = end_date
         elif period == "monthly":
@@ -253,22 +260,34 @@ class DashboardView(APIView):
         inflow_data = ProductInflow.objects.filter(
             date_received__range=[start_date, end_date]
         ).aggregate(
-            total_inflow=Sum("quantity_received"),
-            total_inflow_value=Sum("quantity_received" * "product__price"),
+            total_inflow=Coalesce(Sum("quantity_received"), 0),
+            total_inflow_value=Coalesce(
+                Sum(
+                    F("quantity_received") * F("product__price"),
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
         )
 
         outflow_data = ProductOutflow.objects.filter(
             date_sent__range=[start_date, end_date]
         ).aggregate(
-            total_outflow=Sum("quantity_sent"),
-            total_outflow_value=Sum("quantity_sent" * "product__price"),
+            total_outflow=Coalesce(Sum("quantity_sent"), 0),
+            total_outflow_value=Coalesce(
+                Sum(
+                    F("quantity_sent") * F("product__price"),
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
         )
 
         top_products = Product.objects.annotate(
-            total_outflow=Sum("productoutflow__quantity_sent")
+            total_outflow=Coalesce(Sum("productoutflow__quantity_sent"), 0)
         ).order_by("-total_outflow")[:5]
 
-        low_stock_products = Product.objects.filter(quantity__lt=10).count()
+        low_stock_products = Product.objects.filter(quantity__lte=10).count()
 
         branch_stock = (
             BranchProduct.objects.values("branch__name")
@@ -287,12 +306,12 @@ class DashboardView(APIView):
         response_data = {
             "total_products": total_products,
             "total_branches": total_branches,
-            "total_inflow": inflow_data["total_inflow"] or 0,
-            "total_inflow_value": inflow_data["total_inflow_value"] or 0,
-            "total_outflow": outflow_data["total_outflow"] or 0,
-            "total_outflow_value": outflow_data["total_outflow_value"] or 0,
+            "total_inflow": inflow_data["total_inflow"],
+            "total_inflow_value": float(inflow_data["total_inflow_value"]),
+            "total_outflow": outflow_data["total_outflow"],
+            "total_outflow_value": float(outflow_data["total_outflow_value"]),
             "top_products": [
-                {"name": product.name, "total_outflow": product.total_outflow or 0}
+                {"name": product.name, "total_outflow": product.total_outflow}
                 for product in top_products
             ],
             "low_stock_products": low_stock_products,
@@ -301,3 +320,72 @@ class DashboardView(APIView):
         }
 
         return Response(response_data)
+
+
+class BranchDashboardView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        branch = request.user.managed_branch
+        today = timezone.now().date()
+        last_30_days = today - timedelta(days=30)
+
+        # Branch overview
+        total_products = BranchProduct.objects.filter(branch=branch).count()
+        active_products = BranchProduct.objects.filter(
+            branch=branch, status="active"
+        ).count()
+        total_requests = ProductRequest.objects.filter(branch=branch).count()
+        pending_requests = ProductRequest.objects.filter(
+            branch=branch, status="pending"
+        ).count()
+
+        overview = {
+            "total_products": total_products,
+            "active_products": active_products,
+            "total_requests": total_requests,
+            "pending_requests": pending_requests,
+        }
+
+        # Top 5 products by quantity
+        top_products = (
+            BranchProduct.objects.filter(branch=branch)
+            .order_by("-quantity")[:5]
+            .values("product__name", "quantity")
+        )
+
+        # Product request status
+        request_status = (
+            ProductRequest.objects.filter(branch=branch)
+            .values("status")
+            .annotate(count=Count("status"))
+        )
+
+        # Product outflow in the last 30 days
+        product_outflow = (
+            ProductOutflow.objects.filter(branch=branch, date_sent__gte=last_30_days)
+            .values("date_sent")
+            .annotate(total_quantity=Sum("quantity_sent"))
+            .order_by("date_sent")
+        )
+
+        # Current inventory levels
+        inventory_levels = BranchProduct.objects.filter(branch=branch).values(
+            "product__name", "quantity"
+        )
+
+        serialized_data = {
+            "overview": BranchOverviewSerializer(overview).data,
+            "top_products": TopProductsSerializer(top_products, many=True).data,
+            "request_status": ProductRequestStatusSerializer(
+                request_status, many=True
+            ).data,
+            "product_outflow": ProductOutflowDashboardSerializer(
+                product_outflow, many=True
+            ).data,
+            "inventory_levels": BranchProductInventorySerializer(
+                inventory_levels, many=True
+            ).data,
+        }
+
+        return Response(serialized_data)
