@@ -15,12 +15,9 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import {
-  AlertCircle,
-  Package,
-  ShoppingCart,
-} from "lucide-react";
+import { AlertCircle, Package, ShoppingCart } from "lucide-react";
 import { api } from "@/services/api";
+import Loader from "../layout/Loader";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
@@ -49,12 +46,7 @@ const BranchDashboard = () => {
     }
   };
 
-  if (isLoading)
-    return (
-      <div className="flex justify-center items-center h-screen">
-        Loading...
-      </div>
-    );
+  if (isLoading) return <Loader />;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
   if (!dashboardData) return null;
 
