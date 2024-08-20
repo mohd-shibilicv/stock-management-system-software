@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,7 +21,7 @@ from .serializers import (
     BranchProductDetailsReportSerializer,
 )
 from apps.products.models import Product
-from apps.branches.models import BranchProduct, ProductRequest
+from apps.branches.models import Branch, BranchProduct, ProductRequest
 from .models import ProductInflow, ProductOutflow
 
 
@@ -225,3 +226,78 @@ class BranchExpiredProductReportView(APIView):
 
         serializer = BranchExpiredProductReportSerializer(expired_products, many=True)
         return Response(serializer.data)
+
+
+class DashboardView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Get query parameters for time period filtering
+        period = request.query_params.get("period", "daily")
+
+        # Calculate date range based on the period
+        end_date = datetime.now().date()
+        if period == "daily":
+            start_date = end_date
+        elif period == "monthly":
+            start_date = end_date - relativedelta(months=1)
+        elif period == "yearly":
+            start_date = end_date - relativedelta(years=1)
+        else:
+            return Response({"error": "Invalid period specified"}, status=400)
+
+        # Fetch data for different sections of the dashboard
+        total_products = Product.objects.count()
+        total_branches = Branch.objects.count()
+
+        inflow_data = ProductInflow.objects.filter(
+            date_received__range=[start_date, end_date]
+        ).aggregate(
+            total_inflow=Sum("quantity_received"),
+            total_inflow_value=Sum("quantity_received" * "product__price"),
+        )
+
+        outflow_data = ProductOutflow.objects.filter(
+            date_sent__range=[start_date, end_date]
+        ).aggregate(
+            total_outflow=Sum("quantity_sent"),
+            total_outflow_value=Sum("quantity_sent" * "product__price"),
+        )
+
+        top_products = Product.objects.annotate(
+            total_outflow=Sum("productoutflow__quantity_sent")
+        ).order_by("-total_outflow")[:5]
+
+        low_stock_products = Product.objects.filter(quantity__lt=10).count()
+
+        branch_stock = (
+            BranchProduct.objects.values("branch__name")
+            .annotate(total_stock=Sum("quantity"))
+            .order_by("-total_stock")[:5]
+        )
+
+        expired_products = (
+            ProductInflow.objects.filter(expiry_date__lte=end_date)
+            .values("product__name")
+            .annotate(total_expired=Sum("quantity_received"))
+            .order_by("-total_expired")[:5]
+        )
+
+        # Prepare the response data
+        response_data = {
+            "total_products": total_products,
+            "total_branches": total_branches,
+            "total_inflow": inflow_data["total_inflow"] or 0,
+            "total_inflow_value": inflow_data["total_inflow_value"] or 0,
+            "total_outflow": outflow_data["total_outflow"] or 0,
+            "total_outflow_value": outflow_data["total_outflow_value"] or 0,
+            "top_products": [
+                {"name": product.name, "total_outflow": product.total_outflow or 0}
+                for product in top_products
+            ],
+            "low_stock_products": low_stock_products,
+            "branch_stock": list(branch_stock),
+            "expired_products": list(expired_products),
+        }
+
+        return Response(response_data)
