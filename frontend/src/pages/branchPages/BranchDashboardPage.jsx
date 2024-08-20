@@ -1,10 +1,11 @@
+import BranchDashboard from '@/components/branch/BranchDashboard'
 import Layout from '@/components/layout/Layout'
 import React from 'react'
 
 const BranchDashboardPage = () => {
   return (
     <Layout>
-        <div>BranchDashboardPage</div>
+        <BranchDashboard />
     </Layout>
   )
 }

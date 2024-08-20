@@ -32,6 +32,8 @@ from apps.reports.views import (
     BranchDailyReportView,
     BranchExpiredProductReportView,
     BranchProductDetailsReportView,
+    DashboardView,
+    BranchDashboardView,
 )
 
 
@@ -123,4 +125,10 @@ urlpatterns += [
         BranchExpiredProductReportView.as_view(),
         name="branch-expired-product-report",
     ),
+]
+
+# Dashboard URL
+urlpatterns += [
+    path("api/dashboard/", DashboardView.as_view(), name="dashboard"),
+    path('api/branch-dashboard/', BranchDashboardView.as_view(), name='branch-dashboard'),
 ]

@@ -98,6 +98,7 @@ class ProductDetailsReportSerializer(serializers.Serializer):
     closing_stock = serializers.IntegerField()
 
 
+# Branch Reports Serializers
 class BranchDailyReportSerializer(serializers.Serializer):
     inflows = serializers.SerializerMethodField()
 
@@ -122,4 +123,32 @@ class BranchProductDetailsReportSerializer(serializers.Serializer):
 class BranchExpiredProductReportSerializer(serializers.Serializer):
     product_name = serializers.CharField()
     expiry_date = serializers.DateField()
+    quantity = serializers.IntegerField()
+
+
+# Branch Dashboard Serializers
+class BranchOverviewSerializer(serializers.Serializer):
+    total_products = serializers.IntegerField()
+    active_products = serializers.IntegerField()
+    total_requests = serializers.IntegerField()
+    pending_requests = serializers.IntegerField()
+
+
+class TopProductsSerializer(serializers.Serializer):
+    product__name = serializers.CharField()
+    quantity = serializers.IntegerField()
+
+
+class ProductRequestStatusSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class ProductOutflowDashboardSerializer(serializers.Serializer):
+    date_sent = serializers.DateField()
+    total_quantity = serializers.IntegerField()
+
+
+class BranchProductInventorySerializer(serializers.Serializer):
+    product__name = serializers.CharField()
     quantity = serializers.IntegerField()
