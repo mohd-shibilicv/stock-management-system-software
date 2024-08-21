@@ -106,8 +106,7 @@ class BranchDailyReportSerializer(serializers.Serializer):
         return [
             {
                 "product_name": inflow.product.name,
-                "quantity_received": inflow.quantity_received,
-                "date_received": inflow.date_received,
+                "quantity": inflow.quantity,
             }
             for inflow in obj["inflows"]
         ]
