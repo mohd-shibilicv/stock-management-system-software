@@ -6,7 +6,7 @@ export const StoreProtectedRoute = ({ children, allowedRoles }) => {
   const { user, token } = useSelector((state) => state.auth);
 
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {

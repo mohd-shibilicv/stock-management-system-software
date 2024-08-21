@@ -29,8 +29,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { api, fetchProductRequests, fetchStoreProducts } from "@/services/api";
 import BranchProductRequestModal from "../modals/BranchProductRequestModal";
+import { useSelector } from "react-redux";
 
 export const BranchProductRequestsTable = () => {
+  const managedBranchId = useSelector((state) => state.auth?.user?.managed_branch.id)
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -51,8 +53,9 @@ export const BranchProductRequestsTable = () => {
   }, []);
 
   const handleCreateRequest = async (formData) => {
+    const updatedFormData = { ...formData, branch: managedBranchId}
     try {
-      const response = await api.post("/product-requests/", formData);
+      const response = await api.post("/product-requests/", updatedFormData);
       setData((prevData) => [...prevData, response.data]);
       setIsCreateModalOpen(false);
     } catch (error) {

@@ -149,7 +149,7 @@ const DailyReport = () => {
           <h3 className="text-lg font-semibold mb-2">Inflows</h3>
           <ReportTable
             data={data.inflows}
-            columns={["Product Name", "Quantity Received", "Date Received"]}
+            columns={["Product Name", "Quantity"]}
           />
         </div>
       </div>
