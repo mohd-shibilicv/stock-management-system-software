@@ -11,10 +11,9 @@ import {
   AuthenticatedRoute,
   StoreProtectedRoute,
 } from "./components/layout/StoreProtectedRoute";
-import GeneralViewPage from "./pages/generals/GeneralViewPage";
 import Unauthorized from "./components/layout/Unauthorized";
 import ErrorBoundary from "./components/layout/ErrorBoundary";
-import TokenExpirationModal from "./components/modals/TokenExpirationModel";
+import TokenExpirationModal from "./components/modals/TokenExpirationModal";
 
 function App() {
   return (

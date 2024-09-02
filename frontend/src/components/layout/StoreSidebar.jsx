@@ -18,6 +18,12 @@ import {
   Container,
   HeartCrack,
   PhoneIncoming,
+  Sheet,
+  NotebookText,
+  Package,
+  Blocks,
+  Replace,
+  Handshake,
 } from "lucide-react";
 import LogoutBtn from "./LogoutBtn";
 
@@ -26,8 +32,8 @@ const StoreSidebar = () => {
 
   const isActive = (path) => {
     return location.pathname === path
-      ? "bg-black text-white"
-      : "hover:bg-gray-100";
+      ? "bg-[#6f42c1] text-white"
+      : "hover:bg-[#5a329e] hover:text-white";
   };
 
   const menuItems = [
@@ -82,8 +88,9 @@ const StoreSidebar = () => {
   return (
     <div className="w-20 md:w-64 bg-white p-4 h-screen border-r border-gray-300 flex flex-col">
       <Link to="/" className="mb-8 flex justify-center md:justify-start">
-        <div className="hidden sm:block text-black-500 text-2xl font-bold">
-          InventoryPro
+        <div className="hidden sm:flex gap-2 items-center text-black-500 text-2xl font-bold">
+          <Container />
+          <span>InventoryPro</span>
         </div>
         <div className="block sm:hidden text-black-500 text-2xl font-bold">
           <Container />
